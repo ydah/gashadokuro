@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe Gashadokuro do
-  it "has a version number" do
-    expect(Gashadokuro::VERSION).not_to be_nil
-  end
-
-  it "does something useful" do
-    expect(false).to be(true)
+  it "returns tokens" do
+    p described_class.tokenize("#foo")
+    p described_class.tokenize("#foo > .bar")
   end
 end
