@@ -16,9 +16,9 @@ module Gashadokuro
     type: /(?:(?<namespace>\*|[-\w]*)\|)?(?<name>[-\w\u{0080}-\u{FFFF}]+)|\*/u
   }.freeze
 
-  TOKENS_WITH_PARENS = Set.new(%w[pseudo-class pseudo-element])
-  TOKENS_WITH_STRINGS = TOKENS_WITH_PARENS + Set.new(["attribute"])
-  TRIM_TOKENS = Set.new(%w[combinator comma])
+  TOKENS_WITH_PARENS = Set.new(%i[pseudo-class pseudo-element])
+  TOKENS_WITH_STRINGS = TOKENS_WITH_PARENS + Set.new(%i[attribute])
+  TRIM_TOKENS = Set.new(%i[combinator comma])
 
   TOKENS_FOR_RESTORE = {
     attribute: /\[\s*(?:(?<namespace>\*|[-\w]*)\|)?(?<name>[-\w\u{0080}-\u{FFFF}]+)\s*(?:(?<operator>\W?=)\s*(?<value>.+?)\s*(\s(?<caseSensitive>[iIsS]))?\s*)?\]/u,
@@ -113,7 +113,7 @@ module Gashadokuro
             args << {
               type: token,
               content: content
-            }.merge(match.names.each_with_object({}) { |name, obj| obj[name] = match[name] })
+            }.merge(match.names.each_with_object({}) { |name, obj| obj[name.to_sym] = match[name] }).compact
 
             if (after = str[from + content.length + 1..]) && !after.empty?
               args << after
@@ -144,7 +144,7 @@ module Gashadokuro
   def restore_nested(tokens, strings, regex, types)
     strings.each do |str|
       tokens.each do |token|
-        next unless types.include?(token[:type].to_s) &&
+        next unless types.include?(token[:type]) &&
                     token[:pos][0] < str[:start] &&
                     str[:start] < token[:pos][1]
 
@@ -153,9 +153,13 @@ module Gashadokuro
         next unless content != token[:content]
 
         match = TOKENS_FOR_RESTORE[token[:type]].match(token[:content])
-        groups = match.named_captures
+        groups = symbolize_keys(match.named_captures.compact)
         token.merge!(groups)
       end
     end
+  end
+
+  def symbolize_keys(hash)
+    hash.map{|k,v| [k.to_sym, v] }.to_h
   end
 end
