@@ -5,14 +5,14 @@ require_relative "gashadokuro/version"
 
 module Gashadokuro
   TOKENS = {
-    attribute: /\[\s*(?:(?<namespace>\*|[-\w]*)\|)?(?<name>[-\w]+)\s*(?:(?<operator>\W?=)\s*(?<value>.+?)\s*(\s(?<caseSensitive>[iIsS]))?\s*)?\]/,
+    attribute: /\[\s*(?:(?<namespace>\*|[-\w]*)\|)?(?<name>[-\w\u{0080}-\u{FFFF}]+)\s*(?:(?<operator>\W?=)\s*(?<value>.+?)\s*(\s(?<caseSensitive>[iIsS]))?\s*)?\]/u,
     id: /#(?<name>(?:[-\w\u{0080}-\u{FFFF}]|\\.)+)/u,
     class: /\.(?<name>(?:[-\w\u{0080}-\u{FFFF}]|\\.)+)/u,
     comma: /\s*,\s*/,
     combinator: /\s*[\s>+~]\s*/,
     "pseudo-element": /::(?<name>[-\w\u{0080}-\u{FFFF}]+)(?:\((?<argument>¶+)\))?/u,
-    "pseudo-class": /(?<name>[-\w\u{0080}-\u{FFFF}]+)(?:\((?<argument>¶+)\))?/u,
-    universal: /(?:(\*|[-\w]+)\|)?\*/u,
+    "pseudo-class": /:(?<name>[-\w\u{0080}-\u{FFFF}]+)(?:\((?<argument>¶+)\))?/u,
+    universal: /(?:(?<namespace>\*|[-\w]*)\|)?\*/u,
     type: /(?:(?<namespace>\*|[-\w]*)\|)?(?<name>[-\w\u{0080}-\u{FFFF}]+)|\*/u
   }.freeze
 
@@ -21,14 +21,14 @@ module Gashadokuro
   TRIM_TOKENS = Set.new(%w[combinator comma])
 
   TOKENS_FOR_RESTORE = {
-    attribute: /\[\s*(?:(?<namespace>\*|[-\w]*)\|)?(?<name>[-\w]+)\s*(?:(?<operator>\W?=)\s*(?<value>.+?)\s*(\s(?<caseSensitive>[iIsS]))?\s*)?\]/,
+    attribute: /\[\s*(?:(?<namespace>\*|[-\w]*)\|)?(?<name>[-\w\u{0080}-\u{FFFF}]+)\s*(?:(?<operator>\W?=)\s*(?<value>.+?)\s*(\s(?<caseSensitive>[iIsS]))?\s*)?\]/u,
     id: /#(?<name>(?:[-\w\u{0080}-\u{FFFF}]|\\.)+)/u,
     class: /\.(?<name>(?:[-\w\u{0080}-\u{FFFF}]|\\.)+)/u,
     comma: /\s*,\s*/,
     combinator: /\s*[\s>+~]\s*/,
-    "pseudo-element": /::(?<name>[-\w\u{0080}-\u{FFFF}]+)(?:\((.+?)\))?/u,
-    "pseudo-class": /(?<name>[-\w\u{0080}-\u{FFFF}]+)(?:\((.+)\))?/u,
-    universal: /(?:(\*|[-\w]+)\|)?\*/u,
+    "pseudo-element": /::(?<name>[-\w\u{0080}-\u{FFFF}]+)(?:\((?<argument>.+?)\))?/u,
+    "pseudo-class": /:(?<name>[-\w\u{0080}-\u{FFFF}]+)(?:\((?<argument>.+)\))?/u,
+    universal: /(?:(?<namespace>\*|[-\w]*)\|)?\*/u,
     type: /(?:(?<namespace>\*|[-\w]*)\|)?(?<name>[-\w\u{0080}-\u{FFFF}]+)|\*/u
   }.freeze
 
@@ -106,18 +106,17 @@ module Gashadokuro
             args = []
             content = match[0]
 
-            before = str.slice(0, from + 1)
-            args << before unless before.empty?
+            if (before = str[0...from + 1]) && !before.empty?
+              args << before
+            end
 
             args << {
               type: token,
-              content: content,
-              groups: match.names.each_with_object({}) { |name, obj| obj[name] = match[name] }
-            }
+              content: content
+            }.merge(match.names.each_with_object({}) { |name, obj| obj[name] = match[name] })
 
-            after = str.slice(from + content.length + 1)
-            if after
-              args << after unless after.empty?
+            if (after = str[from + content.length + 1..]) && !after.empty?
+              args << after
             end
 
             strarr[i, 1] = args
@@ -129,17 +128,13 @@ module Gashadokuro
 
     offset = 0
     strarr.each do |token|
-      next unless token
-
-      length = token.length || token[:content].length
-
+      length = token.is_a?(String) ? token.length : token[:content].length
       if token.is_a?(Hash)
         token[:pos] = [offset, offset + length]
         if TRIM_TOKENS.include?(token[:type])
           token[:content] = token[:content].strip.empty? ? " " : token[:content].strip
         end
       end
-
       offset += length
     end
 
@@ -147,11 +142,9 @@ module Gashadokuro
   end
 
   def restore_nested(tokens, strings, regex, types)
-    strings.reverse_each do |str|
+    strings.each do |str|
       tokens.each do |token|
-        next unless token
-        next unless token.is_a?(Hash)
-        next unless types.include?(token[:type]) &&
+        next unless types.include?(token[:type].to_s) &&
                     token[:pos][0] < str[:start] &&
                     str[:start] < token[:pos][1]
 
@@ -159,7 +152,6 @@ module Gashadokuro
         token[:content] = token[:content].gsub(regex, str[:str])
         next unless content != token[:content]
 
-        TOKENS_FOR_RESTORE[token[:type]].last_index = 0
         match = TOKENS_FOR_RESTORE[token[:type]].match(token[:content])
         groups = match.named_captures
         token.merge!(groups)
