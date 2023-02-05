@@ -160,6 +160,6 @@ module Gashadokuro
   end
 
   def symbolize_keys(hash)
-    hash.map{|k,v| [k.to_sym, v] }.to_h
+    hash.transform_keys(&:to_sym)
   end
 end
