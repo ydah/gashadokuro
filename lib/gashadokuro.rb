@@ -71,25 +71,24 @@ module Gashadokuro
     selector
   end
 
-  def gobble_parens(text, i)
-    str = []
+  def gobble_parens(text, start)
+    str = ""
     stack = []
-    (i...text.length).each do |j|
-      char = text[j]
+    text[start...].chars.each.with_index do |char, idx|
       case char
       when "("
         stack.push(char)
       when ")"
-        raise "Closing paren without opening paren at #{j}" if stack.empty?
+        raise "Closing paren without opening paren at #{idx}" if stack.empty?
 
         stack.pop
       end
-      str << char
+      str += char
       break if stack.empty?
     end
     raise "Opening paren without closing paren" unless stack.empty?
 
-    str.join
+    str
   end
 
   def tokenize_by(text, grammar)
