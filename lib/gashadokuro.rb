@@ -134,9 +134,7 @@ module Gashadokuro
       length = token.is_a?(String) ? token.length : token[:content].length
       if token.is_a?(Hash)
         token[:pos] = [offset, offset + length]
-        if TRIM_TOKENS.include?(token[:type])
-          token[:content] = normalize_content(token[:content])
-        end
+        token[:content] = normalize_content(token[:content]) if TRIM_TOKENS.include?(token[:type])
       end
       offset += length
     end
