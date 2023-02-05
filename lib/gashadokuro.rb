@@ -125,19 +125,25 @@ module Gashadokuro
       end
     end
 
+    normalize(strarr)
+  end
+
+  def normalize(strarr)
     offset = 0
     strarr.each do |token|
       length = token.is_a?(String) ? token.length : token[:content].length
       if token.is_a?(Hash)
         token[:pos] = [offset, offset + length]
         if TRIM_TOKENS.include?(token[:type])
-          token[:content] = token[:content].strip.empty? ? " " : token[:content].strip
+          token[:content] = normalize_content(token[:content])
         end
       end
       offset += length
     end
+  end
 
-    strarr
+  def normalize_content(content)
+    content.strip.empty? ? " " : content.strip
   end
 
   def restore_nested(tokens, strings, regex, types)
