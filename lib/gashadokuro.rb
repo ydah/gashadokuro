@@ -101,24 +101,13 @@ module Gashadokuro
         str = strarr[i]
         if str.is_a?(String)
           pattern.match(str) do |match|
-            from = match.begin(0) - 1
             args = []
-            content = match[0]
-
-            if (before = str[0...from + 1]) && !before.empty?
-              args << before
-            end
-
-            args << {
-              type: token,
-              content: content
-            }.merge(match.names.each_with_object({}) { |name, obj| obj[name.to_sym] = match[name] }).compact
-
-            if (after = str[from + content.length + 1..]) && !after.empty?
-              args << after
-            end
-
-            strarr[i, 1] = args
+            args << normalize_string(str[0...match.begin(0)])
+            args << { type: token, content: match[0] }
+                    .merge(match.names.each_with_object({}) { |name, obj| obj[name.to_sym] = match[name] })
+                    .compact
+            args << normalize_string(str[match.begin(0) + match[0].length..])
+            strarr[i, 1] = args.compact
           end
         end
         i += 1
@@ -126,6 +115,12 @@ module Gashadokuro
     end
 
     normalize_token(strarr)
+  end
+
+  def normalize_string(str)
+    return unless str && !str.empty?
+
+    str
   end
 
   def normalize_token(strarr)
