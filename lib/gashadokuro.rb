@@ -125,10 +125,10 @@ module Gashadokuro
       end
     end
 
-    normalize(strarr)
+    normalize_token(strarr)
   end
 
-  def normalize(strarr)
+  def normalize_token(strarr)
     offset = 0
     strarr.each do |token|
       length = token.is_a?(String) ? token.length : token[:content].length
