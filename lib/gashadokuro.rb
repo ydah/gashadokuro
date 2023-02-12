@@ -38,10 +38,8 @@ module Gashadokuro
     return unless selector
 
     selector = selector.strip
-
-    strings = []
+    strings = parens = []
     selector = extract_string_literals(selector, strings)
-    parens = []
     selector = extract_parens(selector, parens)
 
     tokens = tokenize_by(selector, TOKENS)
