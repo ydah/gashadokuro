@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-RSpec.describe Gashadokuro do
+RSpec.describe Gashadokuro::Tokenize do
   it "returns tokens" do
-    expect(described_class.tokenize("#foo > .bar + div.k1.k2 [id='baz']:hello(2):not(:where(#yolo))::before")).to match [
+    expect(described_class.call("#foo > .bar + div.k1.k2 [id='baz']:hello(2):not(:where(#yolo))::before")).to match [
       {
         type: :id,
         content: "#foo",
