@@ -4,6 +4,8 @@ require "set"
 
 module Gashadokuro
   class Tokenize
+    using Refinements
+
     TOKENS = {
       attribute: /\[\s*(?:(?<namespace>\*|[-\w]*)\|)?(?<name>[-\w\u{0080}-\u{FFFF}]+)\s*(?:(?<operator>\W?=)\s*(?<value>.+?)\s*(\s(?<caseSensitive>[iIsS]))?\s*)?\]/u,
       id: /#(?<name>(?:[-\w\u{0080}-\u{FFFF}]|\\.)+)/u,
@@ -154,14 +156,10 @@ module Gashadokuro
           next unless content != token[:content]
 
           match = TOKENS_FOR_RESTORE[token[:type]].match(token[:content])
-          groups = symbolize_keys(match.named_captures.compact)
+          groups = match.named_captures.symbolize_keys.compact
           token.merge!(groups)
         end
       end
-    end
-
-    def symbolize_keys(hash)
-      hash.transform_keys(&:to_sym)
     end
   end
 end
