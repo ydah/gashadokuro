@@ -1,6 +1,6 @@
 # Gashadokuro
 
-[![CI](https://github.com/ydah/gashadokuro/actions/workflows/ci.yml/badge.svg)](https://github.com/ydah/gashadokuro/actions/workflows/ci.yml)
+[![CI](https://github.com/ydah/gashadokuro/actions/workflows/ci.yml/badge.svg)](https://github.com/ydah/gashadokuro/actions/workflows/ci.yml) [![Gem Version](https://badge.fury.io/rb/gashadokuro.svg)](https://badge.fury.io/rb/gashadokuro)
 
 💀 A CSS selector parser implemented in Ruby 💀
 
