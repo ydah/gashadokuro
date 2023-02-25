@@ -7,7 +7,7 @@ module Gashadokuro
 
       @raw_source = source
 
-      @tokens = Tokenize.call(source)
+      @tokens = Parser.call(source)
     end
   end
 end

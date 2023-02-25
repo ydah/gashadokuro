@@ -9,4 +9,4 @@
 # Offense count: 2
 Lint/MixedRegexpCaptureTypes:
   Exclude:
-    - 'lib/gashadokuro/tokenize.rb'
+    - 'lib/gashadokuro/parser.rb'

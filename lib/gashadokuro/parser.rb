@@ -3,7 +3,7 @@
 require "set"
 
 module Gashadokuro
-  class Tokenize
+  class Parser
     using Refinements
 
     TOKENS = {
