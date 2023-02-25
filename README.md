@@ -1,5 +1,7 @@
 # Gashadokuro
 
+[![CI](https://github.com/ydah/gashadokuro/actions/workflows/ci.yml/badge.svg)](https://github.com/ydah/gashadokuro/actions/workflows/ci.yml)
+
 💀 A CSS selector parser implemented in Ruby 💀
 
 ## Installation
