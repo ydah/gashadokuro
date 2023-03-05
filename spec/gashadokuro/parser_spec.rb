@@ -35,6 +35,32 @@ RSpec.describe Gashadokuro::Parser do
       end
     end
 
+    context "when selector is a single attribute selector" do
+      it "returns tokens" do
+        expect(described_class.call("[foo]")).to match [{ type: :attribute, content: "[foo]", name: "foo", pos: [0, 5] }]
+        expect(described_class.call("[foo='bar']")).to match [{ type: :attribute, content: "[foo='bar']", name: "foo", operator: "=", value: "'bar'", pos: [0, 11] }]
+        expect(described_class.call("[foo~='bar']")).to match [{ type: :attribute, content: "[foo~='bar']", name: "foo", operator: "~=", value: "'bar'", pos: [0, 12] }]
+        expect(described_class.call("[foo|='bar']")).to match [{ type: :attribute, content: "[foo|='bar']", name: "foo", operator: "|=", value: "'bar'", pos: [0, 12] }]
+        expect(described_class.call("[foo^='bar']")).to match [{ type: :attribute, content: "[foo^='bar']", name: "foo", operator: "^=", value: "'bar'", pos: [0, 12] }]
+        expect(described_class.call("[foo$='bar']")).to match [{ type: :attribute, content: "[foo$='bar']", name: "foo", operator: "$=", value: "'bar'", pos: [0, 12] }]
+        expect(described_class.call("[foo*='bar']")).to match [{ type: :attribute, content: "[foo*='bar']", name: "foo", operator: "*=", value: "'bar'", pos: [0, 12] }]
+      end
+    end
+
+    context "when selector are multiple attribute selectors" do
+      it "returns tokens" do
+        expect(described_class.call("[foo='bar'][baz='qux']")).to match [
+          { type: :attribute, content: "[foo='bar']", name: "foo", operator: "=", value: "'bar'", pos: [0, 11] },
+          { type: :attribute, content: "[baz='qux']", name: "baz", operator: "=", value: "'qux'", pos: [11, 22] }
+        ]
+        expect(described_class.call("[foo='bar'][baz='qux'][quux='quuz']")).to match [
+          { type: :attribute, content: "[foo='bar']", name: "foo", operator: "=", value: "'bar'", pos: [0, 11] },
+          { type: :attribute, content: "[baz='qux']", name: "baz", operator: "=", value: "'qux'", pos: [11, 22] },
+          { type: :attribute, content: "[quux='quuz']", name: "quux", operator: "=", value: "'quuz'", pos: [22, 35] }
+        ]
+      end
+    end
+
     context "when selector are multiple selectors" do
       it "returns tokens" do
         expect(described_class.call("#foo > .bar + div.k1.k2 [id='baz']:hello(2):not(:where(#yolo))::before")).to match [
