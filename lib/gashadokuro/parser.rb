@@ -48,8 +48,8 @@ module Gashadokuro
     def call
       return unless @selector
 
-      extract_string_literals!
       extract_parens!
+      extract_string_literals!
       tokens = tokenize_by(TOKENS)
       restore_nested(tokens, @parens, /\(¶+\)/, TOKENS_WITH_PARENS)
       restore_nested(tokens, @strings, /(['"])§+?\1/, TOKENS_WITH_STRINGS)
