@@ -41,7 +41,7 @@ module Gashadokuro
     end
 
     def initialize(selector)
-      @selector = selector.strip
+      @selector = selector&.strip
       @strings = @parens = []
     end
 
