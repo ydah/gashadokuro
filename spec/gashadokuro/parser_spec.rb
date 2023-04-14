@@ -10,7 +10,7 @@ RSpec.describe Gashadokuro::Parser do
 
     context "when selector is empty" do
       it "returns empty array" do
-        expect(described_class.call("")).to match [""]
+        expect(described_class.call("")).to match []
       end
     end
 
