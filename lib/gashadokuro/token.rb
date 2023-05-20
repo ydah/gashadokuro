@@ -81,13 +81,13 @@ module Gashadokuro
   end
 
   class AttributeToken < NamespacedToken
-    attr_reader :type, :operator, :value, :caseSensitive
+    attr_reader :type, :operator, :value, :case_sensitive
 
     def initialize
       @type = "attribute"
       @operator = nil
       @value = nil
-      @caseSensitive = nil
+      @case_sensitive = nil
     end
   end
 
