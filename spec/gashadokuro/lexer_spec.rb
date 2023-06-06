@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Gashadokuro::Parser do
+RSpec.describe Gashadokuro::Lexer do
   describe ".call" do
     context "when selector is nil" do
       it "returns nil" do
