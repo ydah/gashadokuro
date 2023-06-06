@@ -61,6 +61,24 @@ RSpec.describe Gashadokuro::Lexer do
       end
     end
 
+    context "when selector is a single pseudo-class selector" do
+      it "returns tokens" do
+        expect(described_class.call(":foo")).to match [{ type: :"pseudo-class", content: ":foo", name: "foo", pos: [0, 4] }]
+        expect(described_class.call(":foo(2)")).to match [{ type: :"pseudo-class", content: ":foo(2)", name: "foo", argument: "2", pos: [0, 7] }]
+        expect(described_class.call(":foo(bar)")).to match [{ type: :"pseudo-class", content: ":foo(bar)", name: "foo", argument: "bar", pos: [0, 9] }]
+        expect(described_class.call(":foo(bar, baz)")).to match [{ type: :"pseudo-class", content: ":foo(bar, baz)", name: "foo", argument: "bar, baz", pos: [0, 14] }]
+      end
+    end
+
+    context "when selector is a single pseudo-element selector" do
+      it "returns tokens" do
+        expect(described_class.call("::foo")).to match [{ type: :"pseudo-element", content: "::foo", name: "foo", pos: [0, 5] }]
+        expect(described_class.call("::foo(2)")).to match [{ type: :"pseudo-element", content: "::foo(2)", name: "foo", argument: "2", pos: [0, 8] }]
+        expect(described_class.call("::foo(bar)")).to match [{ type: :"pseudo-element", content: "::foo(bar)", name: "foo", argument: "bar", pos: [0, 10] }]
+        expect(described_class.call("::foo(bar, baz)")).to match [{ type: :"pseudo-element", content: "::foo(bar, baz)", name: "foo", argument: "bar, baz", pos: [0, 15] }]
+      end
+    end
+
     context "when selector are multiple selectors" do
       it "returns tokens" do
         expect(described_class.call("#foo > .bar + div.k1.k2 [id='baz']:hello(2):not(:where(#yolo))::before")).to match [
