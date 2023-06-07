@@ -10,9 +10,39 @@ module Gashadokuro
     }.freeze
 
     class << self
-      def call(selector)
-        new.parse(selector)
+      def call(tokens)
+        new.parse(tokens)
       end
+    end
+
+    def parse(tokens, recursive: true, list: true)
+      return unless tokens
+
+      ast = nest_tokens(tokens, list: list)
+
+      return ast unless recursive
+
+      flatten(ast).each do |token, _ast|
+        next unless token.type == "pseudo-class" && token.argument
+        next unless RECURSIVE_PSEUDO_CLASSES.include?(token.name)
+
+        argument = token.argument
+        child_arg = RECURSIVE_PSEUDO_CLASSES_ARGS[token.name]
+
+        if child_arg
+          match = child_arg.match(argument)
+          next unless match
+
+          token.merge!(match.named_captures.transform_keys(&:to_sym))
+          argument = match[:subtree]
+        end
+
+        next unless argument
+
+        token[:subtree] = parse(argument, recursive: true, list: true)
+      end
+
+      ast
     end
 
     def nest_tokens(tokens, list: true)
@@ -24,7 +54,7 @@ module Gashadokuro
           if tokens[i][:type] == "comma"
             raise "Incorrect comma at #{i}" if temp.empty?
 
-            selectors.push(nestTokens(temp, list: false))
+            selectors.push(nest_tokens(temp, list: false))
             temp.clear
           else
             temp.push(tokens[i])
@@ -33,7 +63,7 @@ module Gashadokuro
 
         raise "Trailing comma" if temp.empty?
 
-        selectors.push(nestTokens(temp, list: false))
+        selectors.push(nest_tokens(temp, list: false))
 
         { type: "list", list: selectors }
       end
@@ -48,8 +78,8 @@ module Gashadokuro
         return {
           type: "complex",
           combinator: token[:content],
-          left: nestTokens(left),
-          right: nestTokens(right)
+          left: nest_tokens(left),
+          right: nest_tokens(right)
         }
       end
 
@@ -89,37 +119,6 @@ module Gashadokuro
       flatten(node, parent).each do |token, ast|
         visit.call(token, ast)
       end
-    end
-
-    def parse(selector, recursive: true, list: true)
-      tokens = tokenize(selector)
-      return unless tokens
-
-      ast = nest_tokens(tokens, list: list)
-
-      return ast unless recursive
-
-      flatten(ast).each do |token, _ast|
-        next unless token.type == "pseudo-class" && token.argument
-        next unless RECURSIVE_PSEUDO_CLASSES.include?(token.name)
-
-        argument = token.argument
-        child_arg = RECURSIVE_PSEUDO_CLASSES_ARGS[token.name]
-
-        if child_arg
-          match = child_arg.match(argument)
-          next unless match
-
-          token.merge!(match.named_captures.transform_keys(&:to_sym))
-          argument = match[:subtree]
-        end
-
-        next unless argument
-
-        token[:subtree] = parse(argument, recursive: true, list: true)
-      end
-
-      ast
     end
 
     def stringify(list_or_node)
